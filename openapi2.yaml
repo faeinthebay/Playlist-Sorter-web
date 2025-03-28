@@ -11,6 +11,30 @@ paths:
       responses:
         "200":
           description: OK
+          content:
+            application/json:
+              schema:
+                # List of playlist objects (song lists are empty)
+                type: object
+                additionalProperties: 
+                  $ref: '#/components/schemas/Playlist'
+  /playlists/{id}:
+    get:
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Playlist'
+        "404":
+          description: Not Found
+    delete:
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Not Found
 
 components:
   schemas:
@@ -30,6 +54,10 @@ components:
           $ref: '#/components/schemas/ApplSongID'
         YTMSongID:
           $ref: '#/components/schemas/YTMSongID'
+        ratings:
+          type: object
+          additionalProperties: 
+            $ref: '#/components/schemas/SongRating'
     SpotSongID:
       type: string
     YTMSongID:
@@ -53,4 +81,25 @@ components:
           minimum: -2
           maximum: 2
           nullable: true
+    Playlist:
+      type: object
+      properties:
+        name:
+          type: string
+        ID:
+          type: string
+          format: uuid
+        SpotPlaylistID:
+          type: string
+          nullable: true
+        YTMPlaylistID:
+          type: string
+          nullable: true
+        ApplPlaylistID:
+          type: integer
+          nullable: true
+        songs:
+          type: object
+          additionalProperties: 
+            $ref: '#/components/schemas/Song'
       
