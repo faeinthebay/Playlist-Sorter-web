@@ -1,0 +1,36 @@
+openapi: '3.0.3'
+info:
+  title: Magical PlayList Sorter
+  version: '1.0'
+servers:
+  - url: https://test.playlistsorter.ledawson.com/v1
+
+paths:
+  /test:
+    get:
+      responses:
+        '200':
+          description: OK
+  /playlists:
+    get:
+      description: 'List all playlists imported by the authenticated user'
+      parameters: []
+      responses:
+        '200':
+          description: OK
+    delete:
+      description: 'Deletes the specified playlist, if it belongs to user.  Returns '
+      parameters: [UID]
+      responses:
+        '200':
+          description: User playlists
+          content: 
+        '404':
+          description: Not Found or Not Authorized
+  /playlists/{id}:
+    get:
+      description: ''
+      parameters: []
+      responses:
+        '200':
+          description: OK

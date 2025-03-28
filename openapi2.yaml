@@ -1,0 +1,56 @@
+openapi: '3.0.3'
+info:
+  title: Magical Playlist Sorter API alt
+  version: '1.0'
+servers:
+  - url: https://api.server.test/v1
+
+paths:
+  /playlists:
+    get:
+      responses:
+        "200":
+          description: OK
+
+components:
+  schemas:
+    Song:
+      type: object
+      properties:
+        title:
+          type: string
+        artist:
+          type: string
+        length:
+          type: integer
+          description: Length of song in seconds, rounded up
+        SpotSongID:
+          $ref: '#/components/schemas/SpotSongID'
+        ApplSongID:
+          $ref: '#/components/schemas/ApplSongID'
+        YTMSongID:
+          $ref: '#/components/schemas/YTMSongID'
+    SpotSongID:
+      type: string
+    YTMSongID:
+      type: string
+    ApplSongID:
+      type: integer
+    RatingCategory:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+    SongRating:
+      type: object
+      properties:
+        RatingCategory:
+          $ref: '#/components/schemas/RatingCategory'
+        value:
+          type: integer
+          minimum: -2
+          maximum: 2
+          nullable: true
+      
