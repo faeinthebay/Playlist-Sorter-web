@@ -8,6 +8,7 @@ servers:
 paths:
   /playlists:
     get:
+      description: Lists all playlists for the authenticated user
       responses:
         "200":
           description: OK
@@ -18,8 +19,32 @@ paths:
                 type: object
                 additionalProperties: 
                   $ref: '#/components/schemas/Playlist'
+    post:
+      description: Downloads playlist from a service and gets metadata about its songs
+      parameters:
+        - name: ID
+          in: path
+          required: true
+          schema:
+            type: object
+            properties:
+              SpotPlaylistID:
+                $ref: '#/components/schemas/SpotPlaylistID'
+              ApplSongID:
+                $ref: '#/components/schemas/ApplPlaylistID'
+              YTMSongID:
+                $ref: '#/components/schemas/YTMPlaylistID'
+            minProperties: 1
+      responses:
+        "201":
+          description: Imported
+        "404":
+          description: Could not access expernal playlist
+        "409":
+          description: Already imported; request ignored
   /playlists/{id}:
     get:
+      description: Gives an individual playlist metadata and songs by its internal UUID
       responses:
         "200":
           description: OK
@@ -28,13 +53,47 @@ paths:
               schema:
                 $ref: '#/components/schemas/Playlist'
         "404":
-          description: Not Found
+          description: Not Found (or does not belong to this user)
     delete:
+      description: Irreversibly deletes an individual playlist by its internal UUID
       responses:
         "200":
           description: OK
         "404":
-          description: Not Found
+          description: Playlist not deleted because it was not found (or does not belong to this user)
+    put:
+      description: Updates the metadata of an individual playlist by its internal UUID
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Playlist'
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Playlist not updated because it was not found (or does not belong to this user)
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/InternalPlaylistID'
+  /song:
+    parameters:
+      - name: ID
+        in: path
+        required: true
+        schema:
+          type: object
+          properties:
+            SpotSongID:
+              $ref: '#/components/schemas/SpotSongID'
+            ApplSongID:
+              $ref: '#/components/schemas/ApplSongID'
+            YTMSongID:
+              $ref: '#/components/schemas/YTMSongID'
+          minProperties: 1
 
 components:
   schemas:
@@ -67,6 +126,15 @@ components:
       type: string
     ApplSongID:
       type: integer
+    SpotPlaylistID:
+      type: string
+    YTMPlaylistID:
+      type: string
+    ApplPlaylistID:
+      type: integer
+    PrimaryService:
+      type: string
+      enum: [Spot, Appl, YTM]
     RatingCategory:
       type: object
       properties:
@@ -84,11 +152,17 @@ components:
           minimum: -2
           maximum: 2
           nullable: true
+    InternalPlaylistID:
+      type: string
+      format: uuid
     Playlist:
       type: object
       properties:
         name:
           type: string
+        description:
+          type: string
+          nullable: true
         InternalID:
           type: string
           format: uuid
@@ -101,6 +175,9 @@ components:
         ApplPlaylistID:
           type: integer
           nullable: true
+        SourceOfTruth:
+          description: Decides which service is the "source of truth" whose changes are propogated to playlists in other services.  The services that are not sources of truth will have any changes ignored and overwritten by changes from the playlist from the source of truth.
+          $ref: '#/components/schemas/PrimaryService'
         songs:
           type: object
           additionalProperties: 
