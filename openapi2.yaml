@@ -45,15 +45,18 @@ components:
           type: string
         artist:
           type: string
-        length:
+        lengthSeconds:
           type: integer
           description: Length of song in seconds, rounded up
         SpotSongID:
           $ref: '#/components/schemas/SpotSongID'
+          nullable: true
         ApplSongID:
           $ref: '#/components/schemas/ApplSongID'
+          nullable: true
         YTMSongID:
           $ref: '#/components/schemas/YTMSongID'
+          nullable: true
         ratings:
           type: object
           additionalProperties: 
@@ -86,7 +89,7 @@ components:
       properties:
         name:
           type: string
-        ID:
+        InternalID:
           type: string
           format: uuid
         SpotPlaylistID:
