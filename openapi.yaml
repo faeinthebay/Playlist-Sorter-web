@@ -5,6 +5,8 @@ info:
 servers:
   - url: https://api.server.test/v1
 
+# TODO: Fix mixed single and double quotes
+
 paths:
   /playlists:
     get:
@@ -20,7 +22,7 @@ paths:
                 additionalProperties: 
                   $ref: '#/components/schemas/Playlist'
     post:
-      description: Downloads playlist from a service and gets metadata about its songs
+      description: Adds a playlist from a service to this user's profile and gets metadata about its songs
       parameters:
         - name: ID
           in: path
@@ -44,7 +46,7 @@ paths:
           description: Already imported; request ignored
   /playlists/{id}:
     get:
-      description: Gives an individual playlist metadata and songs by its internal UUID
+      description: Gives a playlist's metadata and songs by its internal UUID
       responses:
         "200":
           description: OK
@@ -55,22 +57,23 @@ paths:
         "404":
           description: Not Found (or does not belong to this user)
     delete:
-      description: Irreversibly deletes an individual playlist by its internal UUID
+      description: Irreversibly deletes a playlist and associated song ratings from its user's profile by its internal UUID.  Songs and t
       responses:
         "200":
           description: OK
         "404":
           description: Playlist not deleted because it was not found (or does not belong to this user)
-    put:
+    patch:
       description: Updates the metadata of an individual playlist by its internal UUID
       requestBody:
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Playlist'
+              # TODO: Ensure that partial updates requests are accepted
       responses:
         "200":
-          description: OK
+          description: Updated
         "404":
           description: Playlist not updated because it was not found (or does not belong to this user)
     parameters:
@@ -94,10 +97,36 @@ paths:
             YTMSongID:
               $ref: '#/components/schemas/YTMSongID'
           minProperties: 1
+    get:
+      responses:
+        "200":
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Song"
+    # post is not needed because songs are automatically added with playlists, and can be automatically pruned
+    patch:
+      responses:
+        "200":
+          description: Updated
+        "404":
+          description: Song not updated because it was not found (or has not beed loaded by this user)
+  /user/quota:
+    get:
+      description: Shows user account tier, limits, and current quota
+      responses:
+        "200": 
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserLimits"
 
 components:
   schemas:
     Song:
+      description: A song that could belong to multiple playlists and be from multiple streaming services.  Belongs to a single user.  
       type: object
       properties:
         title:
@@ -107,19 +136,18 @@ components:
         lengthSeconds:
           type: integer
           description: Length of song in seconds, rounded up
-        SpotSongID:
-          $ref: '#/components/schemas/SpotSongID'
-          nullable: true
-        ApplSongID:
-          $ref: '#/components/schemas/ApplSongID'
-          nullable: true
-        YTMSongID:
-          $ref: '#/components/schemas/YTMSongID'
-          nullable: true
-        ratings:
-          type: object
-          additionalProperties: 
-            $ref: '#/components/schemas/SongRating'
+        SpotSongIDs:
+          type: array
+          items:
+            $ref: '#/components/schemas/SpotSongID'
+        ApplSongIDs:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApplSongID'
+        YTMSongIDs:
+          type: array
+          items:
+            $ref: '#/components/schemas/YTMSongID'
     SpotSongID:
       type: string
     YTMSongID:
@@ -176,10 +204,56 @@ components:
           type: integer
           nullable: true
         SourceOfTruth:
-          description: Decides which service is the "source of truth" whose changes are propogated to playlists in other services.  The services that are not sources of truth will have any changes ignored and overwritten by changes from the playlist from the source of truth.
+          description: Decides which service is the "source of truth", whose changes are propogated to playlists in other services.  The services that are not sources of truth will have their changes ignored then overwritten by changes from the source playlist.
           $ref: '#/components/schemas/PrimaryService'
+        ImportDate:
+          type: string
+          format: date-time
         songs:
           type: object
           additionalProperties: 
             $ref: '#/components/schemas/Song'
+            # TODO: Pair song objects with song rating objects
+    UserLimits:
+      type: object
+      properties:
+        tier:
+          description: The user's allowance tier.
+          type: string
+          enum: [Free, Paid, Unlimited]
+        TierExpiration:
+          description: The date and time when a user's account will be downgraded if payment is not made.
+          type: string
+          format: date-time
+          nullable: true
+        AutoRenewEnabled:
+          type: boolean
+        IsRestricted:
+          description: Whether an account is being restricted (by exceeding a quota after an allowance changes).
+          type: boolean
+        LoadedSongs:
+          type: integer
+        MaximumSongs:
+          description: Maximum number of unique songs linked to playlists in a user's account.  One unique song can be linked to multiple song entires per streaming service.  0 indicates unlimited.  
+          type: integer
+        LoadedPlaylists:
+          type: integer
+        MaximumPlaylists:
+          description: Maximum number of playlists loaded to a user's account.  One playlist can be linked to multiple services.  0 indicates unlimited.  
+          type: integer
+        MaximumPlaylistLength:
+          type: integer
+    UserPrefs:
+      type: object
+      properties:
+        SingleSongRating:
+          type: boolean
+          description: Uses the same ratings for a song across all user playlists.
+        CopySongRatings:
+          type: boolean
+          description: If Single Song Ratings are disabled, should a new playlist copy ratings from existing playlists?
+        CopySongRatingSource:
+          type: string
+          enum: [newest, oldest]
+          description: If Copy Song Ratings is enabled, should it copy ratings from the newest or oldest imported playlist?
       
