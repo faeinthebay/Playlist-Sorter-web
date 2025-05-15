@@ -5,8 +5,6 @@ info:
 servers:
   - url: https://api.server.test/v1
 
-# TODO: Fix mixed single and double quotes
-
 paths:
   /playlists:
     get:
@@ -20,7 +18,7 @@ paths:
                 # List of playlist objects (song lists are empty)
                 type: object
                 additionalProperties: 
-                  $ref: '#/components/schemas/Playlist'
+                  $ref: "#/components/schemas/Playlist"
     post:
       description: Adds a playlist from a service to this user's profile and gets metadata about its songs
       parameters:
@@ -31,11 +29,11 @@ paths:
             type: object
             properties:
               SpotPlaylistID:
-                $ref: '#/components/schemas/SpotPlaylistID'
+                $ref: "#/components/schemas/SpotPlaylistID"
               ApplSongID:
-                $ref: '#/components/schemas/ApplPlaylistID'
+                $ref: "#/components/schemas/ApplPlaylistID"
               YTMSongID:
-                $ref: '#/components/schemas/YTMPlaylistID'
+                $ref: "#/components/schemas/YTMPlaylistID"
             minProperties: 1
       responses:
         "201":
@@ -53,7 +51,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Playlist'
+                $ref: "#/components/schemas/Playlist"
         "404":
           description: Not Found (or does not belong to this user)
     delete:
@@ -69,7 +67,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Playlist'
+              $ref: "#/components/schemas/Playlist"
               # TODO: Ensure that partial updates requests are accepted
       responses:
         "200":
@@ -81,7 +79,7 @@ paths:
         in: path
         required: true
         schema:
-          $ref: '#/components/schemas/InternalPlaylistID'
+          $ref: "#/components/schemas/InternalPlaylistID"
   /song:
     parameters:
       - name: ID
@@ -91,16 +89,16 @@ paths:
           type: object
           properties:
             SpotSongID:
-              $ref: '#/components/schemas/SpotSongID'
+              $ref: "#/components/schemas/SpotSongID"
             ApplSongID:
-              $ref: '#/components/schemas/ApplSongID'
+              $ref: "#/components/schemas/ApplSongID"
             YTMSongID:
-              $ref: '#/components/schemas/YTMSongID'
+              $ref: "#/components/schemas/YTMSongID"
           minProperties: 1
     get:
       responses:
         "200":
-          description: "OK"
+          description: OK
           content:
             application/json:
               schema:
@@ -139,15 +137,15 @@ components:
         SpotSongIDs:
           type: array
           items:
-            $ref: '#/components/schemas/SpotSongID'
+            $ref: "#/components/schemas/SpotSongID"
         ApplSongIDs:
           type: array
           items:
-            $ref: '#/components/schemas/ApplSongID'
+            $ref: "#/components/schemas/ApplSongID"
         YTMSongIDs:
           type: array
           items:
-            $ref: '#/components/schemas/YTMSongID'
+            $ref: "#/components/schemas/YTMSongID"
     SpotSongID:
       type: string
     YTMSongID:
@@ -174,7 +172,7 @@ components:
       type: object
       properties:
         RatingCategory:
-          $ref: '#/components/schemas/RatingCategory'
+          $ref: "#/components/schemas/RatingCategory"
         value:
           type: integer
           minimum: -2
@@ -204,15 +202,15 @@ components:
           type: integer
           nullable: true
         SourceOfTruth:
-          description: Decides which service is the "source of truth", whose changes are propogated to playlists in other services.  The services that are not sources of truth will have their changes ignored then overwritten by changes from the source playlist.
-          $ref: '#/components/schemas/PrimaryService'
+          description: 'Decides which service is the "source of truth", whose changes are propogated to playlists in other services.  The services that are not sources of truth will have their changes ignored then overwritten by changes from the source playlist.'
+          $ref: "#/components/schemas/PrimaryService"
         ImportDate:
           type: string
           format: date-time
         songs:
           type: object
           additionalProperties: 
-            $ref: '#/components/schemas/Song'
+            $ref: "#/components/schemas/Song"
             # TODO: Pair song objects with song rating objects
     UserLimits:
       type: object
