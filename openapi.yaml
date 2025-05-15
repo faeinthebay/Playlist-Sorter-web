@@ -1,4 +1,4 @@
-openapi: '3.0.3'
+openapi: '3.1.1'
 info:
   title: Magical Playlist Sorter API alt
   version: '1.0'
@@ -39,7 +39,7 @@ paths:
         "201":
           description: Imported
         "404":
-          description: Could not access expernal playlist
+          description: Could not access external playlist
         "409":
           description: Already imported; request ignored
   /playlists/{id}:
@@ -53,14 +53,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/Playlist"
         "404":
-          description: Not Found (or does not belong to this user)
+          description: Playlist not found in this user's profile
     delete:
-      description: Irreversibly deletes a playlist and associated song ratings from its user's profile by its internal UUID.  Songs and t
+      description: Irreversibly deletes a playlist and associated song ratings from its user's profile by its internal UUID.  
       responses:
         "200":
           description: OK
         "404":
-          description: Playlist not deleted because it was not found (or does not belong to this user)
+          description: Playlist not deleted because it was not found in this user's profile
     patch:
       description: Updates the metadata of an individual playlist by its internal UUID
       requestBody:
@@ -73,7 +73,7 @@ paths:
         "200":
           description: Updated
         "404":
-          description: Playlist not updated because it was not found (or does not belong to this user)
+          description: Playlist not updated because it was not found in this user's profile
     parameters:
       - name: id
         in: path
@@ -109,7 +109,7 @@ paths:
         "200":
           description: Updated
         "404":
-          description: Song not updated because it was not found (or has not beed loaded by this user)
+          description: Song not updated because it has not beed loaded by this user
   /user/quota:
     get:
       description: Shows user account tier, limits, and current quota
@@ -168,16 +168,23 @@ components:
           type: string
         description:
           type: string
+        InternalID: 
+          type: string
+          format: uuid
+        isShared:
+          type: boolean
+          description: Indicates whether this rating is shared between many users, and therefore cannot be edited
     SongRating:
       type: object
       properties:
         RatingCategory:
           $ref: "#/components/schemas/RatingCategory"
         value:
-          type: integer
+          type: 
+            - "integer"
+            - "null"
           minimum: -2
           maximum: 2
-          nullable: true
     InternalPlaylistID:
       type: string
       format: uuid
@@ -187,31 +194,43 @@ components:
         name:
           type: string
         description:
-          type: string
-          nullable: true
+          type: 
+            - "string"
+            - "null"
         InternalID:
           type: string
           format: uuid
         SpotPlaylistID:
-          type: string
-          nullable: true
+          type:  
+            - "string"
+            - "null"
         YTMPlaylistID:
-          type: string
-          nullable: true
+          type:  
+            - "string"
+            - "null"
         ApplPlaylistID:
-          type: integer
-          nullable: true
+          type:  
+            - "integer"
+            - "null"
         SourceOfTruth:
           description: 'Decides which service is the "source of truth", whose changes are propogated to playlists in other services.  The services that are not sources of truth will have their changes ignored then overwritten by changes from the source playlist.'
           $ref: "#/components/schemas/PrimaryService"
         ImportDate:
           type: string
           format: date-time
+        LastUpdated:
+          type: string
+          format: date-time
+        isLoading:
+          type: boolean
+          description: Whether playlist and song metadata are still being imported
         songs:
-          type: object
-          additionalProperties: 
-            $ref: "#/components/schemas/Song"
-            # TODO: Pair song objects with song rating objects
+          type: array
+          prefixItems:
+            - $ref: "#/components/schemas/Song"
+            - $ref: "#/components/schemas/SongRating"
+          minItems: 2
+          maxItems: 2
     UserLimits:
       type: object
       properties:
@@ -221,9 +240,10 @@ components:
           enum: [Free, Paid, Unlimited]
         TierExpiration:
           description: The date and time when a user's account will be downgraded if payment is not made.
-          type: string
+          type:  
+            - "string"
+            - "null"
           format: date-time
-          nullable: true
         AutoRenewEnabled:
           type: boolean
         IsRestricted:
@@ -244,14 +264,11 @@ components:
     UserPrefs:
       type: object
       properties:
-        SingleSongRating:
+        UseSingleSongRating:
           type: boolean
           description: Uses the same ratings for a song across all user playlists.
-        CopySongRatings:
-          type: boolean
-          description: If Single Song Ratings are disabled, should a new playlist copy ratings from existing playlists?
         CopySongRatingSource:
           type: string
-          enum: [newest, oldest]
-          description: If Copy Song Ratings is enabled, should it copy ratings from the newest or oldest imported playlist?
+          enum: [newest, oldest, disabled]
+          description: If Single Song Ratings are disabled, should a new playlist copy ratings from the newest or oldest imported playlist, or not copy ratings?
       
