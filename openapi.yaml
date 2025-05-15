@@ -77,9 +77,9 @@ paths:
     parameters:
       - name: id
         in: path
-        required: true
         schema:
           $ref: "#/components/schemas/InternalPlaylistID"
+        required: true # TODO: Why is this not reading the variable correctly?
   /song:
     parameters:
       - name: ID
@@ -103,7 +103,7 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Song"
-    # post is not needed because songs are automatically added with playlists, and can be automatically pruned
+    # post method is not needed because songs are automatically added with playlists, and can be automatically pruned
     patch:
       responses:
         "200":
