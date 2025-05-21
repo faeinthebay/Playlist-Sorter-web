@@ -1,6 +1,6 @@
-openapi: '3.1.1'
+openapi: '3.1.1' # Can't use nullable property with OpenAPI 3.1
 info:
-  title: Magical Playlist Sorter API alt
+  title: Magical Playlist Sorter API
   version: '1.0'
 servers:
   - url: https://api.server.test/v1
@@ -16,14 +16,14 @@ paths:
             application/json:
               schema:
                 # List of playlist objects (song lists are empty)
-                type: object
-                additionalProperties: 
+                type: array
+                items: 
                   $ref: "#/components/schemas/Playlist"
     post:
       description: Adds a playlist from a service to this user's profile and gets metadata about its songs
       parameters:
         - name: ID
-          in: path
+          in: query
           required: true
           schema:
             type: object
@@ -75,15 +75,16 @@ paths:
         "404":
           description: Playlist not updated because it was not found in this user's profile
     parameters:
-      - name: id
-        in: path
+      - in: path
+        name: id
+        required: true # TODO: Ignore validation error?
         schema:
-          $ref: "#/components/schemas/InternalPlaylistID"
-        required: true # TODO: Why is this not reading the variable correctly?
+          type: string
+          format: uuid
   /song:
     parameters:
       - name: ID
-        in: path
+        in: query
         required: true
         schema:
           type: object
@@ -109,7 +110,7 @@ paths:
         "200":
           description: Updated
         "404":
-          description: Song not updated because it has not beed loaded by this user
+          description: Song not updated because it has not been loaded by this user
   /user/quota:
     get:
       description: Shows user account tier, limits, and current quota
@@ -171,9 +172,6 @@ components:
         InternalID: 
           type: string
           format: uuid
-        isShared:
-          type: boolean
-          description: Indicates whether this rating is shared between many users, and therefore cannot be edited
     SongRating:
       type: object
       properties:
@@ -224,13 +222,17 @@ components:
         isLoading:
           type: boolean
           description: Whether playlist and song metadata are still being imported
-        songs:
+        songs:  
           type: array
-          prefixItems:
-            - $ref: "#/components/schemas/Song"
-            - $ref: "#/components/schemas/SongRating"
-          minItems: 2
-          maxItems: 2
+          items: # Each song entry is a 2-element array used like a tuple, containing a song object and ratings
+            type: array
+            prefixItems:
+              - $ref: "#/components/schemas/Song"
+              - type: array # Ratings are their own sub-array
+                items:
+                  $ref: "#/components/schemas/SongRating"
+            minItems: 2
+            maxItems: 2
     UserLimits:
       type: object
       properties:
