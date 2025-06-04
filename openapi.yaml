@@ -15,7 +15,7 @@ paths:
           content:
             application/json:
               schema:
-                # List of playlist objects (song lists are empty)
+                description: List of playlist objects (song lists are empty) # TODO: Does a description interfere with JSON generation?
                 type: array
                 items: 
                   $ref: "#/components/schemas/Playlist"
@@ -77,7 +77,7 @@ paths:
     parameters:
       - in: path
         name: id
-        required: true # TODO: Ignore validation error?
+        required: true # TODO: Ignore this validation error?
         schema:
           type: string
           format: uuid
@@ -134,7 +134,7 @@ components:
           type: string
         lengthSeconds:
           type: integer
-          description: Length of song in seconds, rounded up
+          description: Length of song in seconds (rounded when provided in milliseconds)
         SpotSongIDs:
           type: array
           items:
@@ -159,6 +159,9 @@ components:
       type: string
     ApplPlaylistID:
       type: integer
+    ISRC:
+      type: string
+      description: ISRC from https://usisrc.org/about/constructing_with_code.html
     PrimaryService:
       type: string
       enum: [Spot, Appl, YTM]
@@ -211,7 +214,7 @@ components:
             - "integer"
             - "null"
         SourceOfTruth:
-          description: 'Decides which service is the "source of truth", whose changes are propogated to playlists in other services.  The services that are not sources of truth will have their changes ignored then overwritten by changes from the source playlist.'
+          description: 'Decides which service is the "source of truth", whose changes are propogated to playlists in other services.  The services that are not sources of truth will have their changes ignored then overwritten.'
           $ref: "#/components/schemas/PrimaryService"
         ImportDate:
           type: string
@@ -272,5 +275,5 @@ components:
         CopySongRatingSource:
           type: string
           enum: [newest, oldest, disabled]
-          description: If Single Song Ratings are disabled, should a new playlist copy ratings from the newest or oldest imported playlist, or not copy ratings?
+          description: If Single Song Ratings are disabled, should a new playlist copy ratings from the newest imported playlist, oldest imported playlist, or not copy ratings at all?
       
