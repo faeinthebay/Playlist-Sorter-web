@@ -1,0 +1,1 @@
+//go:generate docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate -i /api/openapi.yaml -g go -o api/ --package-name api
