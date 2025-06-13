@@ -1,0 +1,369 @@
+openapi: 3.1.1
+info:
+  title: Magical Playlist Sorter API
+  version: "1.0"
+servers:
+- url: https://api.server.test/v1
+paths:
+  /playlists:
+    get:
+      description: Lists all playlists for the authenticated user
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                description: List of playlist objects (song lists are empty)
+                items:
+                  $ref: "#/components/schemas/Playlist"
+                type: array
+          description: OK
+    post:
+      description: Adds a playlist from a service to this user's profile and gets
+        metadata about its songs
+      parameters:
+      - explode: true
+        in: query
+        name: ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/_playlists_post_ID_parameter"
+        style: form
+      responses:
+        "201":
+          description: Imported
+        "404":
+          description: Could not access external playlist
+        "409":
+          description: Already imported; request ignored
+  /playlists/{id}:
+    delete:
+      description: Irreversibly deletes a playlist and associated song ratings from
+        its user's profile by its internal UUID.
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Playlist not deleted because it was not found in this user's
+            profile
+    get:
+      description: Gives a playlist's metadata and songs by its internal UUID
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Playlist"
+          description: OK
+        "404":
+          description: Playlist not found in this user's profile
+    parameters:
+    - explode: false
+      in: path
+      name: id
+      required: true
+      schema:
+        format: uuid
+        type: string
+      style: simple
+    patch:
+      description: Updates the metadata of an individual playlist by its internal
+        UUID
+      parameters:
+      - explode: false
+        in: path
+        name: id
+        required: true
+        schema:
+          format: uuid
+          type: string
+        style: simple
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Playlist"
+      responses:
+        "200":
+          description: Updated
+        "404":
+          description: Playlist not updated because it was not found in this user's
+            profile
+  /song:
+    get:
+      parameters:
+      - explode: true
+        in: query
+        name: ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/_song_ID_parameter"
+        style: form
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Song"
+          description: OK
+    parameters:
+    - explode: true
+      in: query
+      name: ID
+      required: true
+      schema:
+        $ref: "#/components/schemas/_song_ID_parameter"
+      style: form
+    patch:
+      parameters:
+      - explode: true
+        in: query
+        name: ID
+        required: true
+        schema:
+          $ref: "#/components/schemas/_song_ID_parameter"
+        style: form
+      responses:
+        "200":
+          description: Updated
+        "404":
+          description: Song not updated because it has not been loaded by this user
+  /user/quota:
+    get:
+      description: "Shows user account tier, limits, and current quota"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserLimits"
+          description: OK
+components:
+  schemas:
+    Song:
+      description: A song that could belong to multiple playlists and be from multiple
+        streaming services.  Belongs to a single user.
+      example:
+        artist: artist
+        YTMSongIDs:
+        - null
+        - null
+        ApplSongIDs:
+        - null
+        - null
+        SpotSongIDs:
+        - null
+        - null
+        lengthSeconds: 0
+        title: title
+      properties:
+        title:
+          type: string
+        artist:
+          type: string
+        lengthSeconds:
+          description: Length of song in seconds (rounded when provided in milliseconds)
+          type: integer
+        SpotSongIDs:
+          items:
+            $ref: "#/components/schemas/SpotSongID"
+          type: array
+        ApplSongIDs:
+          items:
+            $ref: "#/components/schemas/ApplSongID"
+          type: array
+        YTMSongIDs:
+          items:
+            $ref: "#/components/schemas/YTMSongID"
+          type: array
+    SpotSongID:
+      type: string
+    YTMSongID:
+      type: string
+    ApplSongID:
+      type: integer
+    SpotPlaylistID:
+      type: string
+    YTMPlaylistID:
+      type: string
+    ApplPlaylistID:
+      type: integer
+    ISRC:
+      description: ISRC from https://usisrc.org/about/constructing_with_code.html
+      type: string
+    PrimaryService:
+      enum:
+      - Spot
+      - Appl
+      - YTM
+      type: string
+    RatingCategory:
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        InternalID:
+          format: uuid
+          type: string
+    SongRating:
+      properties:
+        RatingCategory:
+          $ref: "#/components/schemas/RatingCategory"
+        value:
+          maximum: 2
+          minimum: -2
+          nullable: true
+          type: integer
+    InternalPlaylistID:
+      format: uuid
+      type: string
+    Playlist:
+      example:
+        SourceOfTruth: Spot
+        isLoading: true
+        InternalID: 046b6c7f-0b8a-43b9-b35d-6489e6daee91
+        ImportDate: 2000-01-23T04:56:07.000+00:00
+        songs:
+        - - ""
+          - ""
+        - - ""
+          - ""
+        name: name
+        description: description
+        LastUpdated: 2000-01-23T04:56:07.000+00:00
+        SpotPlaylistID: SpotPlaylistID
+        ApplPlaylistID: 0
+        YTMPlaylistID: YTMPlaylistID
+      properties:
+        name:
+          type: string
+        description:
+          nullable: true
+          type: string
+        InternalID:
+          format: uuid
+          type: string
+        SpotPlaylistID:
+          nullable: true
+          type: string
+        YTMPlaylistID:
+          nullable: true
+          type: string
+        ApplPlaylistID:
+          nullable: true
+          type: integer
+        SourceOfTruth:
+          $ref: "#/components/schemas/PrimaryService"
+        ImportDate:
+          format: date-time
+          type: string
+        LastUpdated:
+          format: date-time
+          type: string
+        isLoading:
+          description: Whether playlist and song metadata are still being imported
+          type: boolean
+        songs:
+          items:
+            items: {}
+            maxItems: 2
+            minItems: 2
+            type: array
+          type: array
+    UserLimits:
+      example:
+        AutoRenewEnabled: true
+        MaximumPlaylists: 5
+        LoadedPlaylists: 1
+        MaximumPlaylistLength: 5
+        tier: Free
+        IsRestricted: true
+        TierExpiration: 2000-01-23T04:56:07.000+00:00
+        LoadedSongs: 0
+        MaximumSongs: 6
+      properties:
+        tier:
+          description: The user's allowance tier.
+          enum:
+          - Free
+          - Paid
+          - Unlimited
+          type: string
+        TierExpiration:
+          description: The date and time when a user's account will be downgraded
+            if payment is not made.
+          format: date-time
+          nullable: true
+          type: string
+        AutoRenewEnabled:
+          type: boolean
+        IsRestricted:
+          description: Whether an account is being restricted (by exceeding a quota
+            after an allowance changes).
+          type: boolean
+        LoadedSongs:
+          type: integer
+        MaximumSongs:
+          description: Maximum number of unique songs linked to playlists in a user's
+            account.  One unique song can be linked to multiple song entires per streaming
+            service.  0 indicates unlimited.
+          type: integer
+        LoadedPlaylists:
+          type: integer
+        MaximumPlaylists:
+          description: Maximum number of playlists loaded to a user's account.  One
+            playlist can be linked to multiple services.  0 indicates unlimited.
+          type: integer
+        MaximumPlaylistLength:
+          type: integer
+    UserPrefs:
+      properties:
+        UseSingleSongRating:
+          description: Uses the same ratings for a song across all user playlists.
+          type: boolean
+        CopySongRatingSource:
+          description: "If Single Song Ratings are disabled, should a new playlist\
+            \ copy ratings from the newest imported playlist, oldest imported playlist,\
+            \ or not copy ratings at all?"
+          enum:
+          - newest
+          - oldest
+          - disabled
+          type: string
+    _playlists_post_ID_parameter:
+      minProperties: 1
+      properties:
+        SpotPlaylistID:
+          type: string
+        ApplSongID:
+          type: integer
+        YTMSongID:
+          type: string
+    _song_ID_parameter:
+      minProperties: 1
+      properties:
+        SpotSongID:
+          type: string
+        ApplSongID:
+          type: integer
+        YTMSongID:
+          type: string

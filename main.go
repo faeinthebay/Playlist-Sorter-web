@@ -1,1 +1,1 @@
-//go:generate docker run --rm -v ${pwd}:/local openapitools/openapi-generator-cli generate -i /local/api/openapi.yaml -g go -o api/ --package-name faelist.com/sorterv1
+//go:generate docker run --rm -v ${pwd}:/local openapitools/openapi-generator-cli generate -i /local/api/openapi.yaml -g go -o /local/api/ --package-name faelist.com/sorterv1
